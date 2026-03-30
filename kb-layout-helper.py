@@ -18,14 +18,14 @@ import time
 import re
 from datetime import datetime
 
-# Попытка импорта evdev (для авто-детекта)
+
 try:
     from evdev import InputDevice, categorize, ecodes
     EVDEV_AVAILABLE = True
 except ImportError:
     EVDEV_AVAILABLE = False
 
-# ------------------ Логирование ------------------
+# Логирование 
 LOG_FILE = os.path.expanduser("~/.config/kb-layout-helper/helper.log")
 def log(msg):
     try:
@@ -34,14 +34,14 @@ def log(msg):
     except:
         pass
 
-# ------------------ Чтение конфига ------------------
+# Чтение конфига
 def load_config():
     config = configparser.ConfigParser()
-    config.optionxform = str  # сохраняем регистр ключей
+    config.optionxform = str  
     config.read(os.path.expanduser("~/.config/kb-layout-helper/config.conf"))
     return config
 
-# ------------------ Работа с Hyprland ------------------
+#  Работа с Hyprland
 def get_keyboard_device(config):
     dev_name = config.get("DEFAULT", "main_device", fallback="auto")
     if dev_name != "auto":
@@ -49,11 +49,11 @@ def get_keyboard_device(config):
     try:
         result = subprocess.run(["hyprctl", "devices", "-j"], capture_output=True, text=True, check=True)
         devices = json.loads(result.stdout)
-        # ищем клавиатуру с main = true
+        
         for dev in devices.get("keyboards", []):
             if dev.get("main", False):
                 return dev["name"]
-        # иначе первую не power-button
+       
         for dev in devices.get("keyboards", []):
             if "power-button" not in dev["name"].lower():
                 return dev["name"]
@@ -79,7 +79,7 @@ def get_current_layout_index(device):
 def switch_layout(device, index):
     subprocess.run(["hyprctl", "switchxkblayout", device, str(index)], check=False)
 
-# ------------------ Модуль переключения по окнам ------------------
+# Модуль переключения по окнам
 class WindowWatcher:
     def __init__(self, config, device):
         self.device = device
@@ -154,8 +154,8 @@ class WindowWatcher:
                         self.handle()
                     time.sleep(0.05)  # небольшая пауза
 
-# ------------------ Модуль авто-детекта транслитерации ------------------
-# Таблица перевода латиницы в русские буквы (английская раскладка -> русская)
+# Модуль авто-детекта транслитерации 
+
 TRANS_TABLE = {
     'q': 'й', 'w': 'ц', 'e': 'у', 'r': 'к', 't': 'е', 'y': 'н', 'u': 'г', 'i': 'ш', 'o': 'щ', 'p': 'з',
     '[': 'х', ']': 'ъ', 'a': 'ф', 's': 'ы', 'd': 'в', 'f': 'а', 'g': 'п', 'h': 'р', 'j': 'о', 'k': 'л',
@@ -291,7 +291,7 @@ class AutoDetect:
                     self.buffer = ""
                 self.last_time = time.time()
 
-# ------------------ Запуск ------------------
+# Запуск 
 def main():
     config = load_config()
     device = get_keyboard_device(config)
@@ -320,5 +320,3 @@ def main():
     except KeyboardInterrupt:
         log("Завершение работы")
 
-if __name__ == "__main__":
-    main()
